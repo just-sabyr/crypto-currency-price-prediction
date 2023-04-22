@@ -46,19 +46,20 @@ st.set_page_config(page_title="Crypto Currency Price Prediction using an LSTM ne
 st.title("Crypto Currency Price Prediction using an LSTM neural network")
 
 
-crypto_currency = st.text_input("Enter a crypto currency: ", 'BTC')    
-against_currency = st.selectbox("Choose a currency: ", options=['USD', 'EUR'])
+crypto_currency = st.selectbox("Choose a crypto currency: ", options=['ETH', 'BTC', 'XRP', 'DOGE', 'USDT'])    
+against_currency = st.selectbox("Choose a currency: ", options=['EUR', 'USD'])
 
 # Training start and end date
-train_start = st.date_input('Training start date: ', value=dt.datetime(2020,1,1))
-train_end = st.date_input('Training end date: ', value=dt.datetime(2023, 1, 1))
+train_start = dt.datetime(2020, 1, 1)
+train_end = dt.datetime(2023, 1, 1)
 
 # Testing start and end date
-test_start = st.date_input('Testing start date: ', value=dt.datetime(2023, 1, 1))
-test_end = st.date_input('Testing end date: ', value=dt.datetime(2023, 4, 1))
+test_start = dt.datetime(2023, 1, 1)
+test_end = dt.datetime(2023, 4, 1)
 
 if st.button('Train'):
-
+    # Warn that training might take some time
+    st.write('Training Might take some time, Training takes place everytime you click on the Train button.')
     # Download data using yf
     data = yf.download(f'{crypto_currency}-{against_currency}', start=train_start, end=train_end)
 
@@ -92,20 +93,20 @@ if st.button('Train'):
 
     model = Sequential()
 
-    model.add(LSTM(units=50, return_sequences=True, input_shape=(x_train.shape[1], 1)))
+    model.add(LSTM(units=30, return_sequences=True, input_shape=(x_train.shape[1], 1)))
     model.add(Dropout(0.2))
-    model.add(LSTM(units=50, return_sequences=True))
+    model.add(LSTM(units=30, return_sequences=True))
     model.add(Dropout(0.2))
-    model.add(LSTM(units=50))
+    model.add(LSTM(units=30))
     model.add(Dropout(0.2))
     model.add(Dense(units=1))
 
     model.compile(optimizer='adam', loss='mean_squared_error')
     model.fit(x_train, y_train, epochs=25, batch_size=32)
+
     # to make model available in other buttons
     st.session_state.model = model
     
-
 
     # Donwload testing data
     test_data = yf.download(f'{crypto_currency}-{against_currency}', test_start, test_end)
@@ -142,7 +143,7 @@ if st.button('Train'):
     ax.plot(actual_prices, color='black', label='Actual Prices')
     ax.plot(prediction_prices, color='green', label='Predicted Prices')
     ax.set_title(f'{crypto_currency} Price Prediction Test')
-    #ax.set_xlabel(f'Time in Days (from {test_start} to {test_end}')
+    ax.set_xlabel(f'Day range from {test_start.strftime("%B %d, %Y")} to {test_end.strftime("%B %d, %Y")}')
     ax.set_ylabel(f'Price in {against_currency}')
     ax.legend(loc='upper left')
 
@@ -199,7 +200,7 @@ if st.button('Predict'):
 
     ax2.plot(predictions, color='green', label=f'Predicted prices for the Next {future_Day} days')
     ax2.set_title(f'{crypto_currency} Price Prediction')
-    ax2.set_xlabel('Next Days')
+    ax2.set_xlabel(f'Next Days from {last_end.strftime("%B %d, %Y")}')
     ax2.set_ylabel(f'Price in {against_currency}')
     ax2.legend(loc='upper left')
 
